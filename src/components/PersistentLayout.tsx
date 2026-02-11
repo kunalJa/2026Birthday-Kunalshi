@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import WalletHUD from "./WalletHUD";
 import NavDock, { type TabId } from "./NavDock";
+import SendMoneyModal from "./SendMoneyModal";
 import { useUser } from "@/context/UserProvider";
 
 const TAB_ORDER: TabId[] = ["map", "kalshi", "bounty", "admin"];
@@ -16,6 +17,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
   const { profile } = useUser();
   const [activeTab, setActiveTab] = useState<TabId>("map");
   const [direction, setDirection] = useState(0);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
 
   const handleTabChange = useCallback(
     (newTab: TabId) => {
@@ -46,7 +48,11 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
     <div className="relative h-screen w-screen overflow-hidden bg-zinc-950">
       {/* ─── WALLET HUD (Top 35%) ─── */}
       <div className="fixed top-0 left-0 right-0 h-[35vh] z-40">
-        <WalletHUD balance={profile?.balance ?? 0} />
+        <WalletHUD
+          balance={profile?.balance ?? 0}
+          username={profile?.username ?? "Guest"}
+          onSend={() => setSendModalOpen(true)}
+        />
         {/* Bottom border glow */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
@@ -71,6 +77,9 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
 
       {/* ─── NAV DOCK (Bottom Fixed) ─── */}
       <NavDock activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {/* ─── Send Money Modal ─── */}
+      <SendMoneyModal open={sendModalOpen} onClose={() => setSendModalOpen(false)} />
     </div>
   );
 }

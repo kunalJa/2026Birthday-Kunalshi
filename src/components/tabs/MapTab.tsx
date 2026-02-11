@@ -63,7 +63,7 @@ export default function MapTab() {
       // Fetch recent transactions for initial feed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: recentTx } = await (supabase.from("transactions") as any)
-        .select("id, sender_id, amount, message, location_id, profiles!transactions_sender_id_fkey(username)")
+        .select("id, sender_id, receiver_id, amount, message, location_id, sender:profiles!transactions_sender_id_fkey(username), receiver:profiles!transactions_receiver_id_fkey(username)")
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -71,16 +71,20 @@ export default function MapTab() {
         const items: FeedItem[] = (recentTx as Array<{
           id: string;
           sender_id: string | null;
+          receiver_id: string | null;
           amount: number | null;
           message: string | null;
           location_id: string | null;
-          profiles: { username: string } | null;
+          sender: { username: string } | null;
+          receiver: { username: string } | null;
         }>).map((tx) => {
-          const name = tx.profiles?.username ?? "Someone";
+          seenTxIds.current.add(tx.id);
+          const from = tx.sender?.username ?? "Someone";
+          const to = tx.receiver?.username ?? "Someone";
           const amt = tx.amount ?? 0;
           const text = tx.message
-            ? `${name} — $${amt.toLocaleString()} "${tx.message}"`
-            : `${name} sent $${amt.toLocaleString()}`;
+            ? `${from} → ${to} — $${amt.toLocaleString()} "${tx.message}"`
+            : `${from} → ${to} — $${amt.toLocaleString()}`;
           return { id: tx.id, text, timestamp: Date.now() };
         });
         setFeedItems(items);
@@ -92,100 +96,86 @@ export default function MapTab() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Realtime: map settings + markers + transactions (single channel) ───
+  // ─── Poll transactions every 3s (realtime unreliable on this table) ───
+  const seenTxIds = useRef(new Set<string>());
+
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
-      .channel(`map-realtime-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "game_settings",
-          filter: "key=eq.map_phase",
-        },
-        (payload) => {
-          const newPhase = parseInt((payload.new as { value: string }).value, 10);
-          setMapPhase(newPhase);
-          fetchLocations(newPhase);
+    const poll = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: rows } = await (supabase.from("transactions") as any)
+        .select("id, sender_id, receiver_id, amount, message, location_id, created_at")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (!rows || rows.length === 0) return;
+
+      const newRows = (rows as Array<{
+        id: string;
+        sender_id: string | null;
+        receiver_id: string | null;
+        amount: number | null;
+        message: string | null;
+        location_id: string | null;
+        created_at: string;
+      }>).filter((r) => !seenTxIds.current.has(r.id));
+
+      if (newRows.length === 0) return;
+
+      // Process each new transaction
+      const newItems: FeedItem[] = [];
+      for (const tx of newRows) {
+        seenTxIds.current.add(tx.id);
+
+        let senderName = "Someone";
+        if (tx.sender_id) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: prof } = await (supabase.from("profiles") as any)
+            .select("username")
+            .eq("id", tx.sender_id)
+            .single();
+          if (prof?.username) senderName = prof.username;
         }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "map_locations",
-        },
-        () => {
-          fetchLocations(mapPhase);
+
+        let receiverName = "Someone";
+        if (tx.receiver_id) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: prof } = await (supabase.from("profiles") as any)
+            .select("username")
+            .eq("id", tx.receiver_id)
+            .single();
+          if (prof?.username) receiverName = prof.username;
         }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "transactions",
-        },
-        async (payload) => {
-          const tx = payload.new as {
-            id: string;
-            sender_id: string | null;
-            amount: number | null;
-            message: string | null;
-            location_id: string | null;
-          };
 
-          // Resolve sender name
-          let senderName = "Someone";
-          if (tx.sender_id) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: profile } = await (supabase.from("profiles") as any)
-              .select("username")
-              .eq("id", tx.sender_id)
-              .single();
-            if (profile?.username) senderName = profile.username;
-          }
+        const amt = tx.amount ?? 0;
+        const text = tx.message
+          ? `${senderName} → ${receiverName} — $${amt.toLocaleString()} "${tx.message}"`
+          : `${senderName} → ${receiverName} — $${amt.toLocaleString()}`;
 
-          const amt = tx.amount ?? 0;
-          const text = tx.message
-            ? `${senderName} — $${amt.toLocaleString()} "${tx.message}"`
-            : `${senderName} sent $${amt.toLocaleString()}`;
+        newItems.push({ id: tx.id, text, timestamp: Date.now() });
 
-          // Add to feed
-          const feedItem: FeedItem = { id: tx.id, text, timestamp: Date.now() };
-          setFeedItems((prev) => [feedItem, ...prev].slice(0, 20));
-
-          // If tagged with a location, show a map toast
-          if (tx.location_id) {
-            const loc = locationsRef.current.find((l) => l.id === tx.location_id);
-            if (loc) {
-              const toast: ActiveToast = {
-                id: tx.id,
-                x: loc.x_pct,
-                y: loc.y_pct,
-                text,
-              };
-              setMapToasts((prev) => [toast, ...prev].slice(0, 6));
-              setTimeout(() => {
-                setMapToasts((prev) => prev.filter((t) => t.id !== toast.id));
-              }, 5000);
-            }
+        // Map toast for location-tagged transactions
+        if (tx.location_id) {
+          const loc = locationsRef.current.find((l) => l.id === tx.location_id);
+          if (loc) {
+            const toast: ActiveToast = { id: tx.id, x: loc.x_pct, y: loc.y_pct, text };
+            setMapToasts((prev) => [toast, ...prev].slice(0, 6));
+            setTimeout(() => {
+              setMapToasts((prev) => prev.filter((t) => t.id !== toast.id));
+            }, 5000);
           }
         }
-      )
-      .subscribe((status) => {
-        console.log("[map-realtime] status:", status);
-      });
+      }
 
-    return () => {
-      supabase.removeChannel(channel);
+      if (newItems.length > 0) {
+        setFeedItems((prev) => [...newItems, ...prev].slice(0, 20));
+      }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, mapPhase]);
+
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   if (loading) {
     return (
