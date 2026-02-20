@@ -90,7 +90,7 @@ export default function LoginScreen() {
             transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
             className="text-4xl font-black tracking-tighter text-white"
           >
-            GALA<span className="text-neon-gold">OS</span>
+            ALI + KUNAL <span className="text-neon-gold">2026</span>
           </motion.div>
           <p className="text-white/30 text-sm tracking-widest uppercase">
             The Party Economy

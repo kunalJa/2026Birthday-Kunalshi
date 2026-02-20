@@ -285,12 +285,14 @@ export default function MapTab() {
           </span>
         </div>
       )}
+      {/* DEV MODE TOGGLE — uncomment to enable coordinate picker
       <button
         onClick={() => { setDevMode((v) => !v); setDevCoord(null); }}
         className="absolute top-2 right-2 z-50 glass rounded-lg px-2 py-1 text-[10px] font-mono text-white/30 hover:text-white/60"
       >
         {devMode ? "✕ Dev" : "📍 Dev"}
       </button>
+      */}
 
       {/* ── Live Feed Strip ── */}
       <div className="shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-sm mb-16">
