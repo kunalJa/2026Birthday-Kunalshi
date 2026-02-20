@@ -188,14 +188,7 @@ export default function MapTab() {
   return (
     <div className="flex flex-col h-full -mx-4 -mt-4">
       {/* ── Map Area ── */}
-      <div className="relative flex-1 min-h-0">
-        {/* Phase badge */}
-        <div className="absolute top-3 left-3 z-30 glass-strong rounded-xl px-3 py-1.5">
-          <span className="text-[10px] text-white/40 font-semibold tracking-widest uppercase">
-            Phase {mapPhase}
-          </span>
-        </div>
-
+      <div className="relative h-[55%]">
         <TransformWrapper
           minScale={1}
           maxScale={4}
@@ -243,7 +236,7 @@ export default function MapTab() {
       </div>
 
       {/* ── Live Feed Strip ── */}
-      <div className="shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-sm">
+      <div className="shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-sm mb-16">
         <TransactionFeed items={feedItems} />
       </div>
     </div>

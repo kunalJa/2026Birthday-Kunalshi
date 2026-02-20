@@ -5,8 +5,6 @@ import LoginScreen from "@/components/LoginScreen";
 import PersistentLayout from "@/components/PersistentLayout";
 import MapTab from "@/components/tabs/MapTab";
 import KalshiTab from "@/components/tabs/KalshiTab";
-import BountyTab from "@/components/tabs/BountyTab";
-import AdminTab from "@/components/tabs/AdminTab";
 import type { TabId } from "@/components/NavDock";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -14,8 +12,6 @@ import { Loader2 } from "lucide-react";
 const TAB_COMPONENTS: Record<TabId, React.ComponentType> = {
   map: MapTab,
   kalshi: KalshiTab,
-  bounty: BountyTab,
-  admin: AdminTab,
 };
 
 export default function Home() {

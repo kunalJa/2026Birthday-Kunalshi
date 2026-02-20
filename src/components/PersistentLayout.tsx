@@ -7,7 +7,7 @@ import NavDock, { type TabId } from "./NavDock";
 import SendMoneyModal from "./SendMoneyModal";
 import { useUser } from "@/context/UserProvider";
 
-const TAB_ORDER: TabId[] = ["map", "kalshi", "bounty", "admin"];
+const TAB_ORDER: TabId[] = ["map", "kalshi"];
 
 interface PersistentLayoutProps {
   children: (activeTab: TabId) => React.ReactNode;
@@ -46,8 +46,8 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-zinc-950">
-      {/* ─── WALLET HUD (Top 35%) ─── */}
-      <div className="fixed top-0 left-0 right-0 h-[35vh] z-40">
+      {/* ─── WALLET HUD (Top 25%) ─── */}
+      <div className="fixed top-0 left-0 right-0 h-[25vh] z-40">
         <WalletHUD
           balance={profile?.balance ?? 0}
           username={profile?.username ?? "Guest"}
@@ -57,8 +57,8 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
 
-      {/* ─── VIEWPORT (Bottom 65%) ─── */}
-      <div className="fixed bottom-0 left-0 right-0 h-[65vh] z-10 overflow-hidden">
+      {/* ─── VIEWPORT (Bottom 75%) ─── */}
+      <div className="fixed bottom-0 left-0 right-0 h-[75vh] z-10 overflow-hidden">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={activeTab}
@@ -68,7 +68,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
             animate="center"
             exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 overflow-y-auto pb-24 px-4 pt-4"
+            className="absolute inset-0 overflow-y-auto pb-20 px-4 pt-4"
           >
             {children(activeTab)}
           </motion.div>

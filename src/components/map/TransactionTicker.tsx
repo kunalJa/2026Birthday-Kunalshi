@@ -22,7 +22,7 @@ export default function TransactionFeed({ items }: TransactionFeedProps) {
           Live
         </span>
       </div>
-      <div className="flex flex-col gap-2 max-h-[120px] overflow-y-auto overscroll-contain pr-1">
+      <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto overscroll-contain pr-1">
         <AnimatePresence initial={false}>
           {items.length === 0 && (
             <p className="text-[11px] text-white/20 italic">Waiting for activity…</p>
