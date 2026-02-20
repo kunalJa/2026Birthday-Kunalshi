@@ -45,9 +45,9 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-zinc-950">
-      {/* ─── WALLET HUD (Top 25%) ─── */}
-      <div className="fixed top-0 left-0 right-0 h-[25vh] z-40">
+    <div className="relative h-[100dvh] w-screen flex flex-col overflow-hidden bg-zinc-950">
+      {/* ─── WALLET HUD (shrink-0, fixed height) ─── */}
+      <div className="relative shrink-0 h-[180px] z-40">
         <WalletHUD
           balance={profile?.balance ?? 0}
           username={profile?.username ?? "Guest"}
@@ -58,8 +58,8 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
 
-      {/* ─── VIEWPORT (Bottom 75%) ─── */}
-      <div className="fixed bottom-0 left-0 right-0 h-[75vh] z-10 overflow-hidden">
+      {/* ─── VIEWPORT (fills remaining space) ─── */}
+      <div className="relative flex-1 min-h-0 z-10 overflow-hidden">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={activeTab}

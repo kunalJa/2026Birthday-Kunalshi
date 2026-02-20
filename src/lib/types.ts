@@ -7,6 +7,7 @@ export interface Profile {
   avatar_url: string | null;
   role: "guest" | "admin" | "host";
   created_at: string;
+  has_seen_welcome: boolean;
 }
 
 export interface Market {

@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useUser } from "@/context/UserProvider";
 import LoginScreen from "@/components/LoginScreen";
 import PersistentLayout from "@/components/PersistentLayout";
+import WelcomeReveal from "@/components/WelcomeReveal";
 import MapTab from "@/components/tabs/MapTab";
 import KalshiTab from "@/components/tabs/KalshiTab";
 import type { TabId } from "@/components/NavDock";
@@ -15,7 +17,8 @@ const TAB_COMPONENTS: Record<TabId, React.ComponentType> = {
 };
 
 export default function Home() {
-  const { user, profile, loading } = useUser();
+  const { user, profile, loading, refreshProfile } = useUser();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
 
   // Loading state
   if (loading) {
@@ -36,6 +39,21 @@ export default function Home() {
   // Not authenticated
   if (!user || !profile) {
     return <LoginScreen />;
+  }
+
+  // First-time welcome reveal
+  if (!profile.has_seen_welcome && !welcomeDismissed) {
+    return (
+      <WelcomeReveal
+        balance={profile.balance}
+        username={profile.username ?? "Guest"}
+        userId={user.id}
+        onComplete={() => {
+          setWelcomeDismissed(true);
+          refreshProfile();
+        }}
+      />
+    );
   }
 
   // Authenticated — show the game
