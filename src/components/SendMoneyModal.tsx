@@ -41,12 +41,21 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch locations once on mount
+  // Fetch locations for current phase only
   useEffect(() => {
     async function loadLocations() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: settingData } = await (supabase.from("game_settings") as any)
+        .select("value")
+        .eq("key", "map_phase")
+        .single();
+      const phase = settingData?.value ? parseInt(settingData.value, 10) : 1;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase.from("map_locations") as any)
         .select("id, name")
+        .eq("is_active", true)
+        .eq("phase", phase)
         .order("name");
       if (data) setLocations(data as LocationOption[]);
     }

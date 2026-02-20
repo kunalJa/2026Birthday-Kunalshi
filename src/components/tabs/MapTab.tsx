@@ -31,6 +31,9 @@ export default function MapTab() {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [mapToasts, setMapToasts] = useState<ActiveToast[]>([]);
   const locationsRef = useRef<MapLocation[]>([]);
+  const [devMode, setDevMode] = useState(false);
+  const [devCoord, setDevCoord] = useState<{ x: number; y: number } | null>(null);
+  const [devCopied, setDevCopied] = useState(false);
 
   useEffect(() => {
     locationsRef.current = locations;
@@ -42,8 +45,7 @@ export default function MapTab() {
     const { data } = await (supabase.from("map_locations") as any)
       .select("*")
       .eq("is_active", true)
-      .lte("phase", phase)
-      .order("phase", { ascending: true });
+      .eq("phase", phase);
     if (data) setLocations(data as MapLocation[]);
   }
 
@@ -211,12 +213,39 @@ export default function MapTab() {
             wrapperStyle={{ width: "100%", height: "100%" }}
             contentStyle={{ width: "100%", position: "relative" }}
           >
-            <img
-              src={PHASE_IMAGES[mapPhase] ?? PHASE_IMAGES[1]}
-              alt={`Floor plan phase ${mapPhase}`}
-              className="w-full h-auto select-none pointer-events-none brightness-90 invert opacity-80"
-              draggable={false}
-            />
+            <div className="relative w-full">
+              <img
+                src={PHASE_IMAGES[mapPhase] ?? PHASE_IMAGES[1]}
+                alt={`Floor plan phase ${mapPhase}`}
+                className="w-full h-auto select-none pointer-events-none brightness-90 invert opacity-80"
+                draggable={false}
+              />
+              {/* Dev mode: click overlay to capture coordinates */}
+              {devMode && (
+                <div
+                  className="absolute inset-0 z-50 cursor-crosshair"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+                    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+                    const coord = { x: Math.round(xPct * 100) / 100, y: Math.round(yPct * 100) / 100 };
+                    setDevCoord(coord);
+                    navigator.clipboard.writeText(`x_pct: ${coord.x}, y_pct: ${coord.y}`);
+                    setDevCopied(true);
+                    setTimeout(() => setDevCopied(false), 1500);
+                  }}
+                />
+              )}
+              {/* Dev mode: show clicked coordinate marker */}
+              {devMode && devCoord && (
+                <div
+                  className="absolute z-[60] pointer-events-none"
+                  style={{ left: `${devCoord.x}%`, top: `${devCoord.y}%`, transform: "translate(-50%, -50%)" }}
+                >
+                  <div className="h-4 w-4 rounded-full bg-red-500 border-2 border-white shadow-lg" />
+                </div>
+              )}
+            </div>
 
             {/* Permanent markers */}
             {locations.map((loc) => (
@@ -244,6 +273,24 @@ export default function MapTab() {
           </TransformComponent>
         </TransformWrapper>
       </div>
+
+      {/* Dev mode toggle + coordinate display */}
+      {devMode && devCoord && (
+        <div className="shrink-0 bg-black/80 px-4 py-2 flex items-center justify-between text-xs font-mono">
+          <span className="text-neon-green">
+            x_pct: {devCoord.x}, y_pct: {devCoord.y}
+          </span>
+          <span className="text-white/40">
+            {devCopied ? "Copied!" : "Click map to get coords"}
+          </span>
+        </div>
+      )}
+      <button
+        onClick={() => { setDevMode((v) => !v); setDevCoord(null); }}
+        className="absolute top-2 right-2 z-50 glass rounded-lg px-2 py-1 text-[10px] font-mono text-white/30 hover:text-white/60"
+      >
+        {devMode ? "✕ Dev" : "📍 Dev"}
+      </button>
 
       {/* ── Live Feed Strip ── */}
       <div className="shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-sm mb-16">
