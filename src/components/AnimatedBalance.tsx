@@ -16,7 +16,7 @@ export default function AnimatedBalance({ value, className = "" }: AnimatedBalan
   });
 
   const display = useTransform(spring, (current) =>
-    Math.round(current).toLocaleString("en-US")
+    Math.floor(current).toLocaleString("en-US")
   );
 
   const prevValue = useRef(0);

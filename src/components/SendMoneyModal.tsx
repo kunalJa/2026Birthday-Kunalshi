@@ -95,7 +95,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
     };
   }, [recipientQuery, selectedRecipient, user?.id]);
 
-  const parsedAmount = Math.floor(Number(amount));
+  const parsedAmount = Math.round(Number(amount) * 100) / 100; // allow 2 decimals
   const balance = profile?.balance ?? 0;
 
   const canSubmit =
@@ -183,7 +183,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
           {/* Balance display */}
           <div className="text-center">
             <span className="text-3xl font-bold text-white text-glow-gold">
-              ${balance.toLocaleString()}
+              ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <p className="text-xs text-white/30 mt-1">Available Balance</p>
           </div>
@@ -254,7 +254,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neon-green font-bold text-lg">$</span>
                   <input
                     type="number"
-                    inputMode="numeric"
+                    inputMode="decimal"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0"
@@ -321,7 +321,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
               >
                 <Send size={16} strokeWidth={2.5} />
                 {canSubmit
-                  ? `Send $${parsedAmount.toLocaleString()}`
+                  ? `Send $${parsedAmount.toFixed(2)}`
                   : "Send Money"}
               </motion.button>
             </div>
@@ -333,7 +333,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
               <div className="glass-strong rounded-2xl p-5 w-full text-center">
                 <p className="text-white/40 text-xs uppercase tracking-widest mb-2">Confirm Transfer</p>
                 <p className="text-3xl font-bold text-neon-green text-glow-green">
-                  ${parsedAmount.toLocaleString()}
+                  ${parsedAmount.toFixed(2)}
                 </p>
                 <p className="text-sm text-white/60 mt-2">
                   to <span className="text-white font-semibold">@{selectedRecipient.username}</span>
@@ -388,7 +388,7 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
               </motion.div>
               <p className="text-lg font-bold text-white">Sent!</p>
               <p className="text-sm text-white/40 text-center">
-                ${parsedAmount.toLocaleString()} sent to @{selectedRecipient?.username}
+                ${parsedAmount.toFixed(2)} sent to @{selectedRecipient?.username}
               </p>
               <motion.button
                 whileTap={{ scale: 0.95 }}

@@ -12,7 +12,7 @@ interface NavDockProps {
 
 const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "map", label: "MAP", icon: Map },
-  { id: "kalshi", label: "KALSHI", icon: BarChart3 },
+  { id: "kalshi", label: "KUNALSHI", icon: BarChart3 },
 ];
 
 export default function NavDock({ activeTab, onTabChange }: NavDockProps) {

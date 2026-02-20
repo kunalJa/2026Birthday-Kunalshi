@@ -80,11 +80,16 @@ export default function MapTab() {
         }>).map((tx) => {
           seenTxIds.current.add(tx.id);
           const from = tx.sender?.username ?? "Someone";
-          const to = tx.receiver?.username ?? "Someone";
           const amt = tx.amount ?? 0;
-          const text = tx.message
-            ? `${from} → ${to} — $${amt.toLocaleString()} "${tx.message}"`
-            : `${from} → ${to} — $${amt.toLocaleString()}`;
+          let text: string;
+          if (!tx.receiver_id && tx.message) {
+            text = `${from} — ${tx.message}`;
+          } else {
+            const to = tx.receiver?.username ?? "Someone";
+            text = tx.message
+              ? `${from} → ${to} — $${amt.toLocaleString()} "${tx.message}"`
+              : `${from} → ${to} — $${amt.toLocaleString()}`;
+          }
           return { id: tx.id, text, timestamp: Date.now() };
         });
         setFeedItems(items);
@@ -149,9 +154,14 @@ export default function MapTab() {
         }
 
         const amt = tx.amount ?? 0;
-        const text = tx.message
-          ? `${senderName} → ${receiverName} — $${amt.toLocaleString()} "${tx.message}"`
-          : `${senderName} → ${receiverName} — $${amt.toLocaleString()}`;
+        let text: string;
+        if (!tx.receiver_id && tx.message) {
+          text = `${senderName} — ${tx.message}`;
+        } else {
+          text = tx.message
+            ? `${senderName} → ${receiverName} — $${amt.toLocaleString()} "${tx.message}"`
+            : `${senderName} → ${receiverName} — $${amt.toLocaleString()}`;
+        }
 
         newItems.push({ id: tx.id, text, timestamp: Date.now() });
 

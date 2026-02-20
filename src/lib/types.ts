@@ -16,6 +16,9 @@ export interface Market {
   no_price: number;
   is_locked: boolean;
   outcome: string | null;
+  pool_k: number;
+  total_volume: number;
+  resolved_at: string | null;
 }
 
 export interface MarketPosition {
@@ -24,6 +27,19 @@ export interface MarketPosition {
   market_id: string | null;
   outcome: string | null;
   shares_owned: number;
+  total_paid: number;
+}
+
+export interface MarketTrade {
+  id: string;
+  user_id: string;
+  market_id: string;
+  side: "buy" | "sell";
+  outcome: "yes" | "no";
+  amount: number;
+  shares: number;
+  avg_price: number;
+  created_at: string;
 }
 
 export interface Bounty {
@@ -106,6 +122,9 @@ export interface Database {
           no_price?: number;
           is_locked?: boolean;
           outcome?: string | null;
+          pool_k?: number;
+          total_volume?: number;
+          resolved_at?: string | null;
         };
         Update: {
           id?: string;
@@ -114,6 +133,9 @@ export interface Database {
           no_price?: number;
           is_locked?: boolean;
           outcome?: string | null;
+          pool_k?: number;
+          total_volume?: number;
+          resolved_at?: string | null;
         };
         Relationships: [];
       };
@@ -125,6 +147,7 @@ export interface Database {
           market_id?: string | null;
           outcome?: string | null;
           shares_owned?: number;
+          total_paid?: number;
         };
         Update: {
           id?: string;
@@ -132,6 +155,7 @@ export interface Database {
           market_id?: string | null;
           outcome?: string | null;
           shares_owned?: number;
+          total_paid?: number;
         };
         Relationships: [
           {
@@ -256,6 +280,47 @@ export interface Database {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      market_trades: {
+        Row: MarketTrade;
+        Insert: {
+          id?: string;
+          user_id: string;
+          market_id: string;
+          side: "buy" | "sell";
+          outcome: "yes" | "no";
+          amount: number;
+          shares: number;
+          avg_price: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          market_id?: string;
+          side?: "buy" | "sell";
+          outcome?: "yes" | "no";
+          amount?: number;
+          shares?: number;
+          avg_price?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "market_trades_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "market_trades_market_id_fkey";
+            columns: ["market_id"];
+            isOneToOne: false;
+            referencedRelation: "markets";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
