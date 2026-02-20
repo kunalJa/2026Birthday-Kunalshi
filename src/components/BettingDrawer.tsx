@@ -175,7 +175,7 @@ export default function BettingDrawer({
           exit={{ y: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md glass-strong rounded-t-3xl p-6 pb-28 flex flex-col gap-4"
+          className="w-full max-w-md max-h-[calc(100dvh-180px)] glass-strong rounded-t-3xl p-6 pb-28 flex flex-col gap-4 overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between">
