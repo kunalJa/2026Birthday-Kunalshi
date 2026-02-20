@@ -14,7 +14,7 @@ interface PersistentLayoutProps {
 }
 
 export default function PersistentLayout({ children }: PersistentLayoutProps) {
-  const { profile } = useUser();
+  const { profile, signOut } = useUser();
   const [activeTab, setActiveTab] = useState<TabId>("map");
   const [direction, setDirection] = useState(0);
   const [sendModalOpen, setSendModalOpen] = useState(false);
@@ -52,6 +52,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
           balance={profile?.balance ?? 0}
           username={profile?.username ?? "Guest"}
           onSend={() => setSendModalOpen(true)}
+          onLogout={() => signOut()}
         />
         {/* Bottom border glow */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />

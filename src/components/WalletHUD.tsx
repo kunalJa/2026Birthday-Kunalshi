@@ -1,23 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Send, User } from "lucide-react";
+import { Send, User, LogOut } from "lucide-react";
 import AnimatedBalance from "./AnimatedBalance";
 
 interface WalletHUDProps {
   balance: number;
   username: string;
   onSend?: () => void;
+  onLogout?: () => void;
 }
 
-export default function WalletHUD({ balance, username, onSend }: WalletHUDProps) {
+export default function WalletHUD({ balance, username, onSend, onLogout }: WalletHUDProps) {
   return (
     <div className="relative h-full w-full flex flex-col items-center justify-center px-6 py-2">
       {/* Warm top gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-neon-orange/10 via-transparent to-transparent pointer-events-none rounded-b-3xl" />
 
-      {/* Top row: Username */}
-      <div className="absolute top-2 left-6 z-10">
+      {/* Top row: Username + Logout */}
+      <div className="absolute top-2 left-6 right-6 z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="glass rounded-full h-8 w-8 flex items-center justify-center">
             <User size={14} className="text-white/70" />
@@ -26,6 +27,13 @@ export default function WalletHUD({ balance, username, onSend }: WalletHUDProps)
             @{username}
           </span>
         </div>
+        {/* <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={onLogout}
+          className="glass rounded-full h-8 w-8 flex items-center justify-center"
+        >
+          <LogOut size={14} className="text-white/40" />
+        </motion.button> */}
       </div>
 
       {/* Balance */}
