@@ -67,7 +67,7 @@ export default function MapTab() {
       const { data: recentTx } = await (supabase.from("transactions") as any)
         .select("id, sender_id, receiver_id, amount, message, location_id, sender:profiles!transactions_sender_id_fkey(username), receiver:profiles!transactions_receiver_id_fkey(username)")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(40);
 
       if (recentTx) {
         const items: FeedItem[] = (recentTx as Array<{
