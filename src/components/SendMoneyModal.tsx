@@ -135,7 +135,6 @@ export default function SendMoneyModal({ open, onClose }: SendMoneyModalProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.rpc as any)("send_money", {
-      p_sender_id: user.id,
       p_receiver_id: selectedRecipient.id,
       p_amount: parsedAmount,
       p_message: message.trim() || null,
