@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Crown, Medal, ArrowLeft, Loader2 } from "lucide-react";
+import { Trophy, Crown, Medal, ArrowLeft, Loader2, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
@@ -10,6 +10,7 @@ interface LeaderboardEntry {
   id: string;
   username: string;
   balance: number;
+  team: "red" | "blue" | null;
 }
 
 const RANK_COLORS = [
@@ -29,20 +30,33 @@ const RANK_ICONS = [
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mapPhase, setMapPhase] = useState(1);
 
   useEffect(() => {
     async function fetchLeaderboard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data } = await (supabase.from("profiles") as any)
-        .select("id, username, balance, role")
-        .neq("role", "admin")
-        .order("balance", { ascending: false });
+      const [{ data: phaseData }, { data }] = await Promise.all([
+        (supabase.from("game_settings") as any)
+          .select("value")
+          .eq("key", "map_phase")
+          .single(),
+        (supabase.from("profiles") as any)
+          .select("id, username, balance, role, team")
+          .neq("role", "admin")
+          .order("balance", { ascending: false }),
+      ]);
 
+      if (phaseData?.value) setMapPhase(parseInt(phaseData.value, 10));
       if (data) setEntries(data as LeaderboardEntry[]);
       setLoading(false);
     }
     fetchLeaderboard();
   }, []);
+
+  const isPhase2 = mapPhase >= 2;
+  const redTotal = entries.filter((e) => e.team === "red").reduce((s, e) => s + e.balance, 0);
+  const blueTotal = entries.filter((e) => e.team === "blue").reduce((s, e) => s + e.balance, 0);
+  const winningTeam = redTotal > blueTotal ? "red" : blueTotal > redTotal ? "blue" : null;
 
   const maxBalance = entries.length > 0 ? entries[0].balance : 1;
 
@@ -78,6 +92,66 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
+      {/* ─── Team Scoreboard (Phase 2 only) ─── */}
+      {isPhase2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8"
+        >
+          <h2 className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-3 flex items-center gap-2">
+            <Shield size={12} />
+            Team Standings
+          </h2>
+          <div className="glass-strong rounded-2xl p-4">
+            {/* Score bars */}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-xs font-black tracking-widest uppercase text-red-400 w-10">RED</span>
+              <div className="flex-1 h-8 rounded-full bg-white/5 overflow-hidden relative">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${redTotal + blueTotal > 0 ? (redTotal / (redTotal + blueTotal)) * 100 : 50}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full rounded-full bg-gradient-to-r from-red-500 to-red-400"
+                  style={{ boxShadow: "0 0 15px rgba(239,68,68,0.3)" }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white/90">
+                  ${redTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-xs font-black tracking-widest uppercase text-blue-400 w-10">BLUE</span>
+              <div className="flex-1 h-8 rounded-full bg-white/5 overflow-hidden relative">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${redTotal + blueTotal > 0 ? (blueTotal / (redTotal + blueTotal)) * 100 : 50}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
+                  style={{ boxShadow: "0 0 15px rgba(59,130,246,0.3)" }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white/90">
+                  ${blueTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            {/* Winner callout */}
+            <div className="text-center">
+              {winningTeam ? (
+                <p className={`text-sm font-black tracking-wide uppercase ${
+                  winningTeam === "red" ? "text-red-400" : "text-blue-400"
+                }`}>
+                  Team {winningTeam} is winning!
+                </p>
+              ) : (
+                <p className="text-sm font-bold text-white/40">Teams are tied!</p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* ─── Top 5 Podium Cards ─── */}
       <div className="flex flex-col gap-3 mb-8">
         {top5.map((entry, i) => {
@@ -108,10 +182,19 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Info */}
-              <div className="relative z-10 flex-1 min-w-0">
+              <div className="relative z-10 flex-1 min-w-0 flex items-center gap-2">
                 <p className="font-bold text-sm truncate">
                   @{entry.username}
                 </p>
+                {isPhase2 && entry.team && (
+                  <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full shrink-0 ${
+                    entry.team === "red"
+                      ? "bg-red-500/15 text-red-400 border border-red-500/25"
+                      : "bg-blue-500/15 text-blue-400 border border-blue-500/25"
+                  }`}>
+                    {entry.team}
+                  </span>
+                )}
               </div>
 
               {/* Balance */}
@@ -201,6 +284,15 @@ export default function LeaderboardPage() {
                     #{i + 6}
                   </span>
                   <span className="text-sm text-white/60">@{entry.username}</span>
+                  {isPhase2 && entry.team && (
+                    <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full ${
+                      entry.team === "red"
+                        ? "bg-red-500/15 text-red-400 border border-red-500/25"
+                        : "bg-blue-500/15 text-blue-400 border border-blue-500/25"
+                    }`}>
+                      {entry.team}
+                    </span>
+                  )}
                 </div>
                 <span className="text-sm font-semibold text-white/40 tabular-nums">
                   ${entry.balance.toLocaleString()}
