@@ -34,7 +34,8 @@ export default function LeaderboardPage() {
     async function fetchLeaderboard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase.from("profiles") as any)
-        .select("id, username, balance")
+        .select("id, username, balance, role")
+        .neq("role", "admin")
         .order("balance", { ascending: false });
 
       if (data) setEntries(data as LeaderboardEntry[]);
@@ -135,7 +136,7 @@ export default function LeaderboardPage() {
           <h2 className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-4">
             Wealth Distribution
           </h2>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
             {entries.map((entry, i) => {
               const pct = maxBalance > 0 ? Math.max((entry.balance / maxBalance) * 100, 2) : 2;
               const isTop5 = i < 5;
