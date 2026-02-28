@@ -7,25 +7,79 @@ import AnimatedBalance from "./AnimatedBalance";
 interface WalletHUDProps {
   balance: number;
   username: string;
+  team?: "red" | "blue" | null;
   onSend?: () => void;
   onLogout?: () => void;
 }
 
-export default function WalletHUD({ balance, username, onSend, onLogout }: WalletHUDProps) {
+export default function WalletHUD({ balance, username, team, onSend, onLogout }: WalletHUDProps) {
+  const isRed = team === "red";
+  const isBlue = team === "blue";
+  const hasTeam = isRed || isBlue;
+
   return (
     <div className="relative h-full w-full flex flex-col items-center justify-center px-6 py-2">
-      {/* Warm top gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-neon-orange/10 via-transparent to-transparent pointer-events-none rounded-b-3xl" />
+      {/* Top gradient — team-colored in phase 2 */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-b-3xl"
+        style={{
+          background: hasTeam
+            ? isRed
+              ? "linear-gradient(to bottom, rgba(239,68,68,0.15), transparent 70%)"
+              : "linear-gradient(to bottom, rgba(59,130,246,0.15), transparent 70%)"
+            : "linear-gradient(to bottom, rgba(255,165,0,0.1), transparent 70%)",
+        }}
+      />
+
+      {/* Team accent strip at very top */}
+      {hasTeam && (
+        <div
+          className="absolute top-0 left-0 right-0 h-[3px] rounded-b-full"
+          style={{
+            background: isRed
+              ? "linear-gradient(90deg, transparent, #ef4444, #f87171, #ef4444, transparent)"
+              : "linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent)",
+            boxShadow: isRed
+              ? "0 0 12px rgba(239,68,68,0.4)"
+              : "0 0 12px rgba(59,130,246,0.4)",
+          }}
+        />
+      )}
 
       {/* Top row: Username + Logout */}
       <div className="absolute top-2 left-6 right-6 z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="glass rounded-full h-8 w-8 flex items-center justify-center">
-            <User size={14} className="text-white/70" />
+          <div
+            className="rounded-full h-8 w-8 flex items-center justify-center"
+            style={{
+              background: hasTeam
+                ? isRed
+                  ? "rgba(239,68,68,0.15)"
+                  : "rgba(59,130,246,0.15)"
+                : "rgba(255,255,255,0.06)",
+              border: hasTeam
+                ? `1px solid ${isRed ? "rgba(239,68,68,0.3)" : "rgba(59,130,246,0.3)"}`
+                : "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <User size={14} className={hasTeam ? (isRed ? "text-red-400" : "text-blue-400") : "text-white/70"} />
           </div>
-          <span className="text-xs font-semibold text-white/70 tracking-wide">
+          <span className={`text-xs font-semibold tracking-wide ${
+            hasTeam ? (isRed ? "text-red-300/80" : "text-blue-300/80") : "text-white/70"
+          }`}>
             @{username}
           </span>
+          {hasTeam && (
+            <span
+              className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
+                isRed
+                  ? "bg-red-500/15 text-red-400 border border-red-500/25"
+                  : "bg-blue-500/15 text-blue-400 border border-blue-500/25"
+              }`}
+            >
+              {team}
+            </span>
+          )}
         </div>
         {/* <motion.button
           whileTap={{ scale: 0.9 }}

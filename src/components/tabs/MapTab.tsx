@@ -202,9 +202,9 @@ export default function MapTab() {
       {/* ── Map Area ── */}
       <div className="relative h-[55%]">
         <TransformWrapper
-          minScale={1}
+          minScale={0.6}
           maxScale={4}
-          initialScale={1}
+          initialScale={0.75}
           centerOnInit
           wheel={{ step: 0.1 }}
           pinch={{ step: 5 }}

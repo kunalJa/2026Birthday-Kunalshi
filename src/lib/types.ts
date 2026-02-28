@@ -6,6 +6,7 @@ export interface Profile {
   balance: number;
   avatar_url: string | null;
   role: "guest" | "admin" | "host";
+  team: "red" | "blue" | null;
   created_at: string;
   has_seen_welcome: boolean;
 }

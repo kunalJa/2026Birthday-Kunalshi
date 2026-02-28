@@ -51,6 +51,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
         <WalletHUD
           balance={profile?.balance ?? 0}
           username={profile?.username ?? "Guest"}
+          team={profile?.team}
           onSend={() => setSendModalOpen(true)}
           onLogout={() => signOut()}
         />
@@ -81,6 +82,21 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
 
       {/* ─── Send Money Modal ─── */}
       <SendMoneyModal open={sendModalOpen} onClose={() => setSendModalOpen(false)} />
+
+      {/* ─── Team accent strip at very bottom of app ─── */}
+      {profile?.team && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] z-50"
+          style={{
+            background: profile.team === "red"
+              ? "linear-gradient(90deg, transparent, #ef4444, #f87171, #ef4444, transparent)"
+              : "linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent)",
+            boxShadow: profile.team === "red"
+              ? "0 0 12px rgba(239,68,68,0.4)"
+              : "0 0 12px rgba(59,130,246,0.4)",
+          }}
+        />
+      )}
     </div>
   );
 }
