@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import WalletHUD from "./WalletHUD";
 import NavDock, { type TabId } from "./NavDock";
 import SendMoneyModal from "./SendMoneyModal";
 import { useUser } from "@/context/UserProvider";
+import { supabase } from "@/lib/supabase";
 
 const TAB_ORDER: TabId[] = ["map", "kalshi"];
 
@@ -18,6 +19,20 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabId>("map");
   const [direction, setDirection] = useState(0);
   const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [mapPhase, setMapPhase] = useState(1);
+
+  useEffect(() => {
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase.from("game_settings") as any)
+        .select("value")
+        .eq("key", "map_phase")
+        .single();
+      if (data?.value) setMapPhase(parseInt(data.value, 10));
+    })();
+  }, []);
+
+  const activeTeam = mapPhase >= 2 ? (profile?.team ?? null) : null;
 
   const handleTabChange = useCallback(
     (newTab: TabId) => {
@@ -51,7 +66,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
         <WalletHUD
           balance={profile?.balance ?? 0}
           username={profile?.username ?? "Guest"}
-          team={profile?.team}
+          team={activeTeam}
           onSend={() => setSendModalOpen(true)}
           onLogout={() => signOut()}
         />
@@ -84,14 +99,14 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
       <SendMoneyModal open={sendModalOpen} onClose={() => setSendModalOpen(false)} />
 
       {/* ─── Team accent strip at very bottom of app ─── */}
-      {profile?.team && (
+      {activeTeam && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] z-50"
           style={{
-            background: profile.team === "red"
+            background: activeTeam === "red"
               ? "linear-gradient(90deg, transparent, #ef4444, #f87171, #ef4444, transparent)"
               : "linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent)",
-            boxShadow: profile.team === "red"
+            boxShadow: activeTeam === "red"
               ? "0 0 12px rgba(239,68,68,0.4)"
               : "0 0 12px rgba(59,130,246,0.4)",
           }}
